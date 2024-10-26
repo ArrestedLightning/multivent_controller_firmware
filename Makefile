@@ -3,11 +3,12 @@ TARGET_ELF  ?= $(TARGET_NAME).elf
 TARGET_HEX  ?= $(TARGET_NAME).hex
 TARGET_BIN  ?= $(TARGET_NAME).bin
 
-TOOLCHAIN_DIR ?= xpacks/.bin
+TOOLCHAIN_DIR ?= ~/.local/xPacks/riscv-none-elf-gcc/xpack-riscv-none-elf-gcc-13.2.0-2/bin
 AS := $(TOOLCHAIN_DIR)/riscv-none-elf-gcc
 CC := $(TOOLCHAIN_DIR)/riscv-none-elf-gcc
 CXX := $(TOOLCHAIN_DIR)/riscv-none-elf-g++
 OBJCOPY := $(TOOLCHAIN_DIR)/riscv-none-elf-objcopy
+SIZEBIN := $(TOOLCHAIN_DIR)/riscv-none-elf-size
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./app ./vendor/Core ./vendor/Debug ./vendor/Peripheral ./vendor/Startup ./vendor/User
@@ -19,7 +20,7 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-FLAGS ?= -march=rv32imafc -mabi=ilp32f -msmall-data-limit=8 -mno-save-restore -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wunused -Wuninitialized  -g
+FLAGS ?= -march=rv32imafc -mabi=ilp32f -msmall-data-limit=8 -mno-save-restore -O1 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wunused -Wuninitialized  -g
 ASFLAGS ?= $(FLAGS) -x assembler $(INC_FLAGS) -MMD -MP
 CPPFLAGS ?=  $(FLAGS) $(INC_FLAGS) -std=gnu99 -MMD -MP
 LDFLAGS ?= $(FLAGS) -T ./vendor/Ld/Link.ld -nostartfiles -Xlinker --gc-sections -Wl,-Map,"$(BUILD_DIR)/CH32V203.map" --specs=nano.specs --specs=nosys.specs
@@ -41,6 +42,7 @@ $(BUILD_DIR)/$(TARGET_ELF): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 	$(OBJCOPY) -Oihex   $@ $(BUILD_DIR)/$(TARGET_HEX)
 	$(OBJCOPY) -Obinary $@ $(BUILD_DIR)/$(TARGET_BIN)
+	$(SIZEBIN) $@
 
 # assembly
 $(BUILD_DIR)/%.S.o: %.S

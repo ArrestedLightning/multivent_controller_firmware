@@ -509,8 +509,7 @@ void GPIO_EventOutputCmd(FunctionalState NewState)
  *            GPIO_Remap_SWJ_NoJTRST - Full SWJ Enabled (JTAG-DP + SW-DP) but without JTRST
  *            GPIO_Remap_SWJ_JTAGDisable - JTAG-DP Disabled and SW-DP Enabled
  *            GPIO_Remap_SWJ_Disable - Full SWJ Disabled (JTAG-DP + SW-DP)
- *            GPIO_Remap_TIM2ITR1_PTP_SOF - Ethernet PTP output or USB OTG SOF (Start of Frame) connected
- *        to TIM2 Internal Trigger 1 for calibration
+ *            GPIO_Remap_TIM2ITR1_PTP_SOF - Ethernet PTP output or USB OTG SOF (Start of Frame) connected to TIM2 Internal Trigger 1 for calibration
  *            GPIO_Remap_TIM2ITR1_PTP_SOF - Ethernet PTP output or USB OTG SOF (Start of Frame)
  *            GPIO_Remap_TIM8 - TIM8 Alternate Function mapping
  *            GPIO_PartialRemap_TIM9 - TIM9 Partial Alternate Function mapping

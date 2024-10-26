@@ -24,10 +24,11 @@
 //#define DEBUG   DEBUG_UART2
 //#define DEBUG   DEBUG_UART3
 
+#define DEBUG_BAUDRATE 115200
+
 void Delay_Init(void);
 void Delay_Us(uint32_t n);
-void Delay_Ms(uint32_t n);
-void USART_Printf_Init(uint32_t baudrate);
+//void Delay_Ms(uint32_t n);
 
 #if(DEBUG)
   #define PRINT(format, ...)    printf(format, ##__VA_ARGS__)
