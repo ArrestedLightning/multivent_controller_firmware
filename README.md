@@ -1,4 +1,4 @@
-# Basic CH32V203 RISCV Makefile project
+# Multivent Controller Firmware
 
 Requirements:
  - xpack riscv toolchain (riscv-none-embed-) (https://github.com/xpack-dev-tools/riscv-none-embed-gcc-xpack/releases)
@@ -23,5 +23,7 @@ Files under `vendor/` are from openwch (https://github.com/openwch/ch32v307) Lic
 Makefile is based on an example here: https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
 # Reference
-modify from greg's CH32V307 makefile project
+Based on https://github.com/hilbert-yaa/CH32V203-project-template/tree/main,
+which in turn was based on greg's CH32V307 makefile project
 https://github.com/gregdavill/CH32V307-makefile-example.git
+Contains some code from https://github.com/M-Minhaj/u8g2-with-RISC-V-MCU---CH32V305-7-MCU/tree/main
