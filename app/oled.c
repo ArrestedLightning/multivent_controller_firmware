@@ -76,20 +76,17 @@ uint8_t u8g2_gpio_and_delay_ch32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t m
 uint8_t u8x8_byte_wch32_hw_i2c(u8x8_t *u8g2, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     // u8g2/u8x8 will never send more than 32 bytes between START_TRANSFER and END_TRANSFER
-//   add extra byte for the i2c address
-    static uint8_t buffer[34];
-    static uint8_t buf_idx;
+    //   add extra byte for the i2c address
+//    static uint8_t buffer[34];
+//    static uint8_t buf_idx;
     uint8_t *data;
+    static i2c_queued_msg qmsg = {.slave_addr = OLED_ADDRESS};
+    static uint32_t seq_num = 0;
     oled_dbg("i2c:%d\n", msg);
     switch(msg)  {
         case U8X8_MSG_BYTE_SEND:
-            data = (uint8_t *)arg_ptr;
-            while( arg_int > 0 )
-            {
-                buffer[buf_idx++] = *data;
-                data++;
-                arg_int--;
-            }
+            memcpy(&qmsg.buffer[qmsg.byte_count], arg_ptr, arg_int);
+            qmsg.byte_count += arg_int;
             break;
         case U8X8_MSG_BYTE_INIT:
             // add your custom code to init i2c subsystem
@@ -98,15 +95,17 @@ uint8_t u8x8_byte_wch32_hw_i2c(u8x8_t *u8g2, uint8_t msg, uint8_t arg_int, void 
         //   ignored for i2c
             break;
         case U8X8_MSG_BYTE_START_TRANSFER:
-            buf_idx = 0;
+            qmsg.byte_count = 0;
             break;
         case U8X8_MSG_BYTE_END_TRANSFER:
-            I2C_Master_Transmit(I2C1,OLED_ADDRESS, (uint8_t *)buffer, buf_idx);
+//            I2C_Master_Transmit(I2C1, OLED_ADDRESS, (uint8_t *)buffer, buf_idx);
+            queue_i2c_msg(&qmsg);
+            seq_num += 1;
+            oled_dbg("seq_num: %d\n", seq_num);
             break;
         default:
             return 0;
     }
-
 
     return 1;
 }

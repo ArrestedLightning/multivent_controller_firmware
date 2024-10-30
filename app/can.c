@@ -89,12 +89,17 @@ static void process_can_message(CanRxMsg *rx_msg) {
         break;
     case 0x1F1:
         led_request_bar(LED_TOP_RED, LED_BAR_FULL, true);
+        valve_close_set();
+        fan_off_set();
         break;
     case 0x1F2:
         led_request_bar(LED_TOP_GREEN, LED_BAR_FULL, true);
+        fan_on_set();
+        valve_open_set();
         break;
     case 0x1F3:
         led_request_bar(LED_TOP_WHITE, LED_BAR_FULL, true);
+        fan_on_set();
         break;
     }
 }

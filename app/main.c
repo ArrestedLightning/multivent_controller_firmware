@@ -126,14 +126,15 @@ void GPIO_init(void)
     //PC15 BUTTON_3
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
 void pwm_init(void) {
     TIM_TimeBaseInitTypeDef time_base;
     TIM_OCInitTypeDef oc_init;
+    TIM_BDTRInitTypeDef bdtr_init;
 
-    RCC_APB1PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 | RCC_APB1Periph_TIM3 | RCC_APB1Periph_TIM5, ENABLE);
 
     TIM_TimeBaseStructInit(&time_base);
@@ -141,48 +142,45 @@ void pwm_init(void) {
     time_base.TIM_ClockDivision = SystemCoreClock / (HB_PWM_FREQ * PWM_FULL_SCALE);
     time_base.TIM_Period = PWM_FULL_SCALE;
     TIM_TimeBaseInit(TIM3, &time_base);
-    TIM3->SWEVGR = TIM_PSCReloadMode_Update;
 
     //Configure buzzer & heartbeat PWM
     TIM_OCStructInit(&oc_init);
     oc_init.TIM_OCMode = TIM_OCMode_PWM1;
     oc_init.TIM_OutputState = TIM_OutputState_Enable;
+    oc_init.TIM_OCPolarity = TIM_OCPolarity_High;
     oc_init.TIM_Pulse = 0xFFFF;
     TIM_OC2Init(TIM3, &oc_init);//buzzer
     TIM_OC3Init(TIM3, &oc_init);//heartbeat
-
-    //Configure fan output PWM
-//    TIM_OCStructInit(&oc_init);
-//    oc_init.TIM_OCMode = TIM_OCMode_PWM1;
-//    oc_init.TIM_OutputState = TIM_OutputState_Enable;
-//    oc_init.TIM_Pulse = 0xFFFF;
-    TIM_OC2Init(TIM2, &oc_init);
-    TIM_OC3Init(TIM2, &oc_init);
 
     //Configure servo output PWM
     time_base.TIM_ClockDivision = SystemCoreClock / (SERVO_PWM_FREQ * PWM_FULL_SCALE);
     time_base.TIM_Period = PWM_FULL_SCALE;
     TIM_TimeBaseInit(TIM5, &time_base);
-    TIM5->SWEVGR = TIM_PSCReloadMode_Update;
     //    TIM_OCStructInit(&oc_init);
     //    oc_init.TIM_OCMode = TIM_OCMode_PWM1;
     //    oc_init.TIM_OutputState = TIM_OutputState_Enable;
-    //    oc_init.TIM_Pulse = 0xFFFF;
+        oc_init.TIM_Pulse = PWM_FULL_SCALE / 2;
     TIM_OC1Init(TIM5, &oc_init);
 
     //Configure open output PWM - CH1/CH1N enable
-    time_base.TIM_ClockDivision = SystemCoreClock / (20000 * PWM_FULL_SCALE);
+    time_base.TIM_ClockDivision = SystemCoreClock / (VALVE_FAN_PWM_FREQ * PWM_FULL_SCALE);
     time_base.TIM_Period = PWM_FULL_SCALE;
+    time_base.TIM_CounterMode = TIM_CounterMode_Up;
+    time_base.TIM_RepetitionCounter = 0;
     TIM_TimeBaseInit(TIM1, &time_base);
-    TIM1->SWEVGR = TIM_PSCReloadMode_Update;
+    TIM_BDTRStructInit(&bdtr_init);
+//    bdtr_init.TIM_AutomaticOutput = TIM_AutomaticOutput_Enable;
+//    bdtr_init->TIM_Break = TIM_Break_Disable;
+    TIM_BDTRConfig(TIM1, &bdtr_init);
 //    TIM_OCStructInit(&oc_init);
 //    oc_init.TIM_OCMode = TIM_OCMode_PWM1;
+//    oc_init.TIM_OCPolarity = TIM_OCPolarity_High;
 //    oc_init.TIM_OutputState = TIM_OutputState_Enable;
     oc_init.TIM_OutputNState = TIM_OutputNState_Enable;
-    oc_init.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+    oc_init.TIM_OCNPolarity = TIM_OCNPolarity_High;
     oc_init.TIM_OCIdleState = TIM_OCIdleState_Reset;
     oc_init.TIM_OCNIdleState = TIM_OCNIdleState_Reset;
-//    oc_init.TIM_Pulse = 0xFFFF;
+    oc_init.TIM_Pulse = 0x00;
     TIM_OC1Init(TIM1, &oc_init);
 
     //Configure Close output PWM - CH2N/CH3N enable
@@ -190,11 +188,26 @@ void pwm_init(void) {
     TIM_OC2Init(TIM1, &oc_init);
     TIM_OC3Init(TIM1, &oc_init);
 
+    //Configure fan output PWM
+    TIM_TimeBaseInit(TIM2, &time_base);
+//    TIM_OCStructInit(&oc_init);
+//    oc_init.TIM_OCMode = TIM_OCMode_PWM1;
+    oc_init.TIM_OutputState = TIM_OutputState_Enable;
+//    oc_init.TIM_Pulse = 0x00;
+    TIM_OC2Init(TIM2, &oc_init);
+    TIM_OC3Init(TIM2, &oc_init);
+
     TIM_Cmd(TIM1, ENABLE);
     TIM_CtrlPWMOutputs(TIM1, ENABLE);
 
+    TIM_Cmd(TIM2, ENABLE);
+    TIM_CtrlPWMOutputs(TIM2, ENABLE);
+
     TIM_Cmd(TIM3, ENABLE);
     TIM_CtrlPWMOutputs(TIM3, ENABLE);
+
+    TIM_Cmd(TIM5, ENABLE);
+    TIM_CtrlPWMOutputs(TIM5, ENABLE);
 }
 
 /*********************************************************************
@@ -207,7 +220,7 @@ void pwm_init(void) {
 
 int main(void)
 {
-    RCC_ClocksTypeDef RCC_ClocksStatus={0};
+    RCC_ClocksTypeDef RCC_ClocksStatus = {0};
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     Delay_Init();
@@ -248,7 +261,7 @@ int main(void)
         (void)PT_SCHEDULE(can_rx_task(&threads[5]));
         (void)PT_SCHEDULE(vent_control_task(&threads[6]));
 //        (void)PT_SCHEDULE(display_task(&threads[7]));
-//        (void)PT_SCHEDULE(i2c_task(&threads[8]));
+        (void)PT_SCHEDULE(i2c_task(&threads[8]));
     }
 #endif
 
